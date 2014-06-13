@@ -6,7 +6,7 @@ import subprocess
 import simplejson
 from datetime import datetime
 
-repodir = "burnman"
+repodir = os.path.abspath("burnman")
 
 color_green = "#99ff99"
 color_red = "#ff0000"
