@@ -161,9 +161,14 @@ if len(sys.argv)<3:
     print "test.py run <dir>"
     print "test.py delete <sha1>"
     print "test.py render it"    
+    print "test.py new db"
 else:
     whattodo = sys.argv[1]
     arg1 = sys.argv[2]
+
+if whattodo=="new" and arg1=="db":
+    h = history()
+    h.save()
 
 if whattodo != "":
     h = history()
