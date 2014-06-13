@@ -198,9 +198,10 @@ if whattodo == "delete":
     h.save()
 
 if whattodo == "pull" and arg1 == "requests":
-    import requests
-    r = requests.get("https://api.github.com/repos/burnman-project/burnman/pulls")
-    data = simplejson.loads(r.content)
+    import urllib2
+    #r = requests.get("https://api.github.com/repos/burnman-project/burnman/pulls").content
+    r = urllib2.urlopen("https://api.github.com/repos/burnman-project/burnman/pulls").read()
+    data = simplejson.loads(r)
     print "found {0} pull requests...".format(len(data))
     for pr in data:
         by = pr['user']['login']
