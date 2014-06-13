@@ -227,10 +227,10 @@ if whattodo == "run" and arg1=="all":
     ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
     ret = subprocess.check_call("cd {0} && git pull origin -q".format(repodir), shell=True)
 
-    answer = subprocess.check_output("cd {0};git log --format=oneline -n 10 --reverse".format(repodir),
+    answer = subprocess.check_output("cd {0};git log --format=oneline -n 10".format(repodir),
                                      shell=True,stderr=subprocess.STDOUT)
     lines = answer.split("\n")
-    for l in lines:
+    for l in lines[::-1]:
         sha1 = l.split(" ")[0]
         if len(sha1)!=40:
             continue
