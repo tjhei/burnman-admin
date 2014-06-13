@@ -101,16 +101,17 @@ class history:
             except:
                 pass
             
-            details = "<a href='#' onclick='toggle(\"sha{0}\")'>click</a>".format(x['sha'])
+            sha1 = x['sha'].replace("\n","n")
+            details = "<a href='#' onclick='toggle(\"sha{0}\")'>click</a>".format(sha1)
             failtext = "<p style='background-color:#99ff99'>{0}</p>".format(x['nfail'])
             if x['nfail']>0:
                 failtext = "<p style='background-color:#ff0000'>{0}</p>".format(x['nfail'])
             comment = ""
             if 'comment' in x.keys():
                 comment = x['comment']
-            f.write("<tr><td>{0}</td><td>{2}</td><td>{3}</td><td>{1}</td><td>{4}</td><td>{5}</td></tr>\n".format(x['sha'][0:10], timestr, x['npass'], failtext, comment, details))
+            f.write("<tr><td>{0}</td><td>{2}</td><td>{3}</td><td>{1}</td><td>{4}</td><td>{5}</td></tr>\n".format(sha1[0:10], timestr, x['npass'], failtext, comment, details))
             text = text_to_html(x['text'])
-            f.write("<tr id='sha{0}' style='display: none'><td colspan='6'>{1}<br/>{2}</td></tr>\n".format(x['sha'], x['sha'], text))
+            f.write("<tr id='sha{0}' style='display: none'><td colspan='6'>{0}<br/>{1}</td></tr>\n".format(sha1, text))
 
         f.write("</table>\n")
 
