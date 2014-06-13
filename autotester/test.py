@@ -6,7 +6,7 @@ import subprocess
 import simplejson
 from datetime import datetime
 
-repodir = "/home/heister/Dropbox/work/burnman-stuff/burnman-admin/autotester/burnman-git"
+repodir = "burnman"
 
 color_green = "#99ff99"
 color_red = "#ff0000"
