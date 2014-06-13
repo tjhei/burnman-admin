@@ -84,7 +84,8 @@ class history:
     def render(self):
         f = open ("results.html", "w")
 
-        f.write("<html><body><h1>Test Results</h1><br/>\n")
+        f.write("<html><body><h1>Test Results</h1>\n")
+        f.write("<p>Last update: {0}</p>".format(datetime.now().strftime(self.timeformat)))
 
         f.write("<script>function toggle(id) {var o = document.getElementById(id);if (o.style.display=='none') o.style.display='table-row'; else o.style.display='none'; }</script>\n")
         f.write("<table border=1 width='100%' style='border-collapse:collapse'>\n")
