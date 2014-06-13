@@ -159,7 +159,7 @@ class history:
 
 def test(repodir, h, comment=""):
     sha1 = subprocess.check_output("cd {0};git rev-parse HEAD".format(repodir),
-                                   shell=True)
+                                   shell=True).replace("\n","")
     print "running", sha1
     answer = subprocess.check_output("cd {0};./test.sh".format(repodir, sha1),
                                      shell=True,stderr=subprocess.STDOUT)
