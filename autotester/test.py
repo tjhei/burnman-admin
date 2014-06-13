@@ -110,7 +110,7 @@ class history:
                 comment = x['comment']
             f.write("<tr><td>{0}</td><td>{2}</td><td>{3}</td><td>{1}</td><td>{4}</td><td>{5}</td></tr>\n".format(x['sha'][0:10], timestr, x['npass'], failtext, comment, details))
             text = text_to_html(x['text'])
-            f.write("<tr id='sha{0}' style='display: none'><td colspan='5'>{1}<br/>{2}</td></tr>\n".format(x['sha'], x['sha'], text))
+            f.write("<tr id='sha{0}' style='display: none'><td colspan='6'>{1}<br/>{2}</td></tr>\n".format(x['sha'], x['sha'], text))
 
         f.write("</table>\n")
 
