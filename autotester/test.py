@@ -43,7 +43,7 @@ class history:
         text = f.read()
         f.close()
         self.data = simplejson.loads(text)
-        print "loading {0} entries...".format(len(self.data))
+        #print "loading {0} entries...".format(len(self.data))
 
     def save(self):
         text = simplejson.dumps(self.data)
@@ -91,7 +91,7 @@ class history:
         
         sorted_keys = self.sort_keys()
 
-        f.write("<tr><td width='1%'>SHA1</td><td>PASS</td><td>FAIL</td><td>Time</td><td>Details</td></tr>\n")
+        f.write("<tr><td width='1%'>SHA1</td><td>PASS</td><td>FAIL</td><td>Time</td><td>Comment</td><td>Details</td></tr>\n")
         for sha in sorted_keys:
             x = self.data[sha[0]]
             timestr = "?"
@@ -105,7 +105,10 @@ class history:
             failtext = "<p style='background-color:#99ff99'>{0}</p>".format(x['nfail'])
             if x['nfail']>0:
                 failtext = "<p style='background-color:#ff0000'>{0}</p>".format(x['nfail'])
-            f.write("<tr><td>{0}</td><td>{2}</td><td>{3}</td><td>{1}</td><td>{4}</td></tr>\n".format(x['sha'][0:10], timestr, x['npass'], failtext, details))
+            comment = ""
+            if 'comment' in x.keys():
+                comment = x['comment']
+            f.write("<tr><td>{0}</td><td>{2}</td><td>{3}</td><td>{1}</td><td>{4}</td><td>{5}</td></tr>\n".format(x['sha'][0:10], timestr, x['npass'], failtext, comment, details))
             text = text_to_html(x['text'])
             f.write("<tr id='sha{0}' style='display: none'><td colspan='5'>{1}<br/>{2}</td></tr>\n".format(x['sha'], x['sha'], text))
 
@@ -139,7 +142,7 @@ class history:
             print "ERROR: sha1 is not unique"
             
 
-    def add(self, sha, text):
+    def add(self, sha, text, comment):
         time = date_to_epoch(datetime.now())
         npass = 0
         nfail = 0
@@ -150,18 +153,33 @@ class history:
                 nfail = nfail + 1
 
         #print time
-        entry = dict(sha=sha, time=time, npass=npass, nfail=nfail, text=text)
+        entry = dict(sha=sha, time=time, npass=npass, nfail=nfail, text=text, comment=comment)
         self.data[sha] = entry
+
+
+def test(repodir, h, comment=""):
+    sha1 = subprocess.check_output("cd {0};git rev-parse HEAD".format(repodir),
+                                   shell=True)
+    print "running", sha1
+    answer = subprocess.check_output("cd {0};./test.sh".format(repodir, sha1),
+                                     shell=True,stderr=subprocess.STDOUT)
+
+    answer.replace(repodir,"$BURNMAN")
+    h.add(sha1, answer, comment)
+    h.render()
+    h.save()
 
 
 whattodo = ""
 
 if len(sys.argv)<3:
     print "usage:"
-    print "test.py run <dir>"
+    print "test.py run all"
     print "test.py delete <sha1>"
     print "test.py render it"    
     print "test.py new db"
+    print "test.py pull requests"
+    print "test.py test user/repo:ref"
 else:
     whattodo = sys.argv[1]
     arg1 = sys.argv[2]
@@ -179,8 +197,30 @@ if whattodo == "delete":
     h.render()
     h.save()
 
-if whattodo == "run":
-    repodir = os.path.abspath(arg1)
+if whattodo == "pull" and arg1 == "requests":
+    import requests
+    r = requests.get("https://api.github.com/repos/burnman-project/burnman/pulls")
+    data = simplejson.loads(r.content)
+    print "found {0} pull requests...".format(len(data))
+    for pr in data:
+        by = pr['user']['login']
+        title = pr['title']
+        print "PR/{0}: '{2}' by {1} ".format(pr['number'], by, title)
+        print "  use: python test.py test {0}:{1}".format(pr['head']['repo']['full_name'],pr['head']['ref'])
+        #print pr['id']
+    #for pr in data:
+    #    print pr['id']
+
+if whattodo =="test":
+    userrepo, ref = arg1.split(":")
+    ret = subprocess.check_call("cd {0} && git fetch https://github.com/{1} {2}".format(repodir, userrepo, ref), shell=True)
+    ret = subprocess.check_call("cd {0} && git checkout FETCH_HEAD".format(repodir), shell=True)
+    
+    test(repodir, h, arg1)
+    
+    ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
+
+if whattodo == "run" and arg1=="all":
     print repodir
 
     ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
@@ -194,17 +234,16 @@ if whattodo == "run":
         if len(sha1)!=40:
             continue
         if not h.have(sha1):
-            print "running", sha1
-            answer = subprocess.check_output("cd {0};git checkout {1} -q;./test.sh".format(repodir, sha1),
-                                             shell=True,stderr=subprocess.STDOUT)
-            #print answer
-            answer.replace(repodir,"$BURNMAN")
-            h.add(sha1, answer)
-            h.render()
-            h.save()
+            
+            ret = subprocess.check_call("cd {0};git checkout {1} -q".format(repodir, sha1),
+                                        shell=True)
+
+            test(repodir, h)
         
         else:
             pass
+
+    ret = subprocess.check_call("cd {0} && git checkout master -q".format(repodir), shell=True)
 
 if whattodo !="":
     h.render()
