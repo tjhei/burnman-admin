@@ -1,0 +1,19 @@
+- update readme using gen_doc.py
+- update changelog
+- create branch:
+  git co -b burnman-0.7
+- update version.py (also on mainline)
+- update and upload documentation:
+  cd sphinx;make html; cd ..
+  rsync -avz sphinx/_build/html/ tjhei.info:burnman/doc-0.7
+- update link to documentation in readme
+- tag version and push to github:
+  export VER=0.7
+  git tag -a v$VER -m 'tag version $VER'
+  git archive --format=zip --prefix=burnman-$VER/ v$VER >burnman-$VER.zip
+  git push upstream burnman-$VER
+  git push upstream v$VER
+- update pip:
+  python setup.py sdist
+  twine upload  dist/burnman-v$VER.tar.gz
+- upload .zip and update homepage
