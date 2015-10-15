@@ -318,7 +318,7 @@ if whattodo == "do-current":
 
 
 if whattodo == "pullrequests":
-    r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo)).read()
+    r = github_read(token, "https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo))
     data = js.loads(r)
     print "found {0} pull requests...".format(len(data))
     for pr in data:
@@ -338,7 +338,7 @@ if whattodo == "pullrequests":
  #               print "  allowed owner"
                 allowed = True
             else:
-                r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number'])).read()
+                r = github_read(token, "https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number']))
                 comments = js.loads(r)
                 for comment in comments:
                     user = comment['user']['login']
@@ -353,7 +353,7 @@ if whattodo == "pullrequests":
                 
 
 if whattodo == "do-pullrequests":
-    r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo)).read()
+    r = github_read(token, "https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo))
     data = js.loads(r)
     print "found {0} pull requests...".format(len(data))
     for pr in data:
@@ -373,7 +373,7 @@ if whattodo == "do-pullrequests":
  #               print "  allowed owner"
                 allowed = True
             else:
-                r = urllib2.urlopen("https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number'])).read()
+                r = github_read(token, "https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number']))
                 comments = js.loads(r)
                 for comment in comments:
                     user = comment['user']['login']
