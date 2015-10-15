@@ -19,14 +19,22 @@ color_green = "#99ff99"
 color_red = "#ff0000"
 
 
-
+def github_read(token, url):
+    #print "read: ", url
+    req = urllib2.Request(url)
+    req.add_header("Authorization", "token {0}".format(token))
+    res = urllib2.urlopen(req)
+    result = res.read()
+    return result
+    #except urllib2.HTTPError as e:
+    #    print "setting github status failed: HTTP error ", e.code
+    #except urllib2.URLError as e:
+    #    print "setting github status failed: failure ", e.reason
+    #return ""
+     
 
 def github_set_commit_status(user, repo, token, sha1, state="success", description="", link=""):
     #pending, success, error, failure
-
-    if len(token)==0:
-        print "no token, skipping setting commit status"
-        return
 
     description = description[0:min(len(description),140)] #github doesn't like too long description
 
@@ -36,13 +44,14 @@ def github_set_commit_status(user, repo, token, sha1, state="success", descripti
     req = urllib2.Request(url)
     req.add_header("Authorization", "token {0}".format(token))
     req.add_data(data)
+    result = ""
     try:
         res = urllib2.urlopen(req)
         result = res.read()
     except urllib2.HTTPError as e:
-        print "setting github status failed: HTTP error ", e.code
+        print "setting github status failed: HTTP error ", e.code, e.reason, url, data 
     except urllib2.URLError as e:
-        print "setting github status failed: failure ", e.reason
+        print "setting github status failed: failure ", e.reason, result
 
 def date_to_epoch(dt):
     epoch = datetime.utcfromtimestamp(0)
@@ -60,11 +69,11 @@ def text_to_html(text):
         assert(status in ["good", "bad", "neutral"])
             
         if status=="good":
-            outlines.append("<p style='background-color:{0}'>{1}</p>".format(color_green, l))
+            outlines.append("<p style='background-color:{0}'>{1}</p>".format(color_green, l.encode("utf-8")))
         elif status=="bad":
-            outlines.append("<p style='background-color:{0}'>{1}</p>".format(color_red, l))
+            outlines.append("<p style='background-color:{0}'>{1}</p>".format(color_red, l.encode("utf-8")))
         else:
-            outlines.append("{0}<br/>".format(l))
+            outlines.append("{0}<br/>".format(l.encode("utf-8")))
     
     return "".join(outlines)
 
@@ -357,7 +366,7 @@ if whattodo == "do-pullrequests":
         if h.have(sha):
             result = h.data[sha]
             print "  already tested: good={} - '{}':".format(result['good'], result['name'])
-            print result['text']
+            print result['text'].encode("utf-8")
         else:
             allowed = False
             if is_allowed(by):
@@ -398,6 +407,62 @@ if whattodo == "do-pullrequests":
             else:
                 print "not allowed! please add a comment containing '/run-tests'"
                                 
+if whattodo == "mark-pullrequests":
+    r = github_read(token, "https://api.github.com/repos/{0}/{1}/pulls".format(github_user, github_repo))
+    data = js.loads(r)
+    print "found {0} pull requests...".format(len(data))
+    for pr in data:
+        by = pr['user']['login']
+        title = pr['title'].encode("utf-8")
+        sha = pr['head']['sha']
+        print "PR{}: {} '{}' by {}".format(pr['number'], sha, title, by)
+        #print "  use: python runner.py test {0}:{1}".format(pr['head']['repo']['full_name'],pr['head']['ref'])
+        #print simplejson.dumps(pr, sort_keys=True, indent=4, separators=(',', ': '))
+        if h.have(sha):
+            result = h.data[sha]
+            print "  already tested: good={} - '{}':".format(result['good'], result['name'])
+            #print result['text']
+        else:
+            allowed = False
+            if is_allowed(by):
+                allowed = True
+            else:
+                r = github_read(token, "https://api.github.com/repos/{0}/{1}/issues/{2}/comments".format(github_user, github_repo, pr['number']))
+                comments = js.loads(r)
+                for comment in comments:
+                    user = comment['user']['login']
+                    text = comment['body']
+                    if is_allowed(user) and has_hotword(text):
+                        print "  allowed by hotword from {}".format(user)
+                        allowed = True
+            statustext="queued..."
+            if not allowed:
+                statustext="(not allowed)"
+
+            # find status:
+            r = github_read(token, "https://api.github.com/repos/{0}/{1}/commits/{2}/statuses".format(github_user, github_repo, sha))
+            data = js.loads(r)
+            has_status = False
+            desc = ""
+            for st in data:
+                if st['context']=="default":
+                    has_status = True
+                    desc = st['description']
+            
+            if desc in {"", "queued...", "(not allowed)"}:
+                if desc==statustext:
+                    print "... already got status", statustext
+                else:
+                    print "... setting status ", statustext
+                    github_set_commit_status(github_user, github_repo, token, sha, "pending", statustext)
+            else:
+                print " has some desc, so skipping: ", desc
+
+if whattodo == "rate":
+    r = urllib2.urlopen("https://api.github.com/rate_limit".format()).read()
+    print r
+                        
+     
 
 if whattodo == "test":
     #arg1
