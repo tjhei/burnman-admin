@@ -23,18 +23,9 @@ ret=$?
 echo "return value: $ret" >>$logfile
 cat $logfile >>$summary
 
-#grep "ERROR" $logfile >>$summary
-#grep "FAIL" $logfile >>$summary
-#grep "... ok" $logfile >>$summary
-
-#(
-#cd $basepath/aspect/doc/ && exit 0 &&
-#make manual.pdf >/dev/null 2>&1 &&
-#echo "Manual: OK" || 
-#echo "Manual: FAILED";
-#git checkout -f -q -- manual.pdf;
-#cp manual/manual.log $basepath/logs/$sha/manual.log
-#) >>$basepath/logs/$sha/summary
- 
+PYTHON=python3 ./test.sh >>$logfile 2>&1
+ret=$?
+echo "return value: $ret" >>$logfile
+cat $logfile >>$summary 
 
 cat $basepath/logs/$sha/summary
