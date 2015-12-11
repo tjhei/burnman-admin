@@ -18,11 +18,12 @@ cd burnman
 echo "test: $logfile $summary"
 echo "$sha $name at $basepath `date`" >> $logfile
 
+echo "** python2:" >>$logfile
 ./test.sh >>$logfile 2>&1
 ret=$?
 echo "return value: $ret" >>$logfile
-cat $logfile >>$summary
 
+echo "** python3:" >>$logfile
 PYTHON=python3 ./test.sh >>$logfile 2>&1
 ret=$?
 echo "return value: $ret" >>$logfile
