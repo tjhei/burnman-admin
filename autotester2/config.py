@@ -37,7 +37,7 @@ def is_allowed(username):
 
 # make a nice link for a test result:
 def make_link(sha):
-    return "http://www.math.clemson.edu/~heister/burnman-logs/{}/".format(sha)
+    return "http://www.math.clemson.edu/~heister/burnman-logs/{}/summary".format(sha)
 
 
 # for a given line l of the test output return
