@@ -15,4 +15,5 @@ RUN sudo apt-get update && sudo apt-get -yq install \
   texlive-fonts-recommended \
   texlive-latex-recommended \
   texlive-latex-extra \
-  python3-numpy python3-scipy python3-matplotlib
+  python3-numpy python3-scipy python3-matplotlib \
+  ipython3 ipython3-notebook python3-pygments
