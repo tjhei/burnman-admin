@@ -58,4 +58,6 @@ def status_of_output_line(l):
     #    status = "bad"
     elif re.match(r'.*FAIL', l):
         status = "bad"
+    elif re.match(r'^ERROR', l):
+        status = "bad"
     return status
